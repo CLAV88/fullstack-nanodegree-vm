@@ -51,13 +51,12 @@ def gconnect():
         return response
     # Obtain authorization code
     code = request.data
-    print(code)
+    # print(code)
     try:
         # Upgrade the authorization code into a credentials object
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
-        print(credentials)
     except FlowExchangeError:
         response = make_response(
             json.dumps('Failed to upgrade the authorization code.'), 401)
@@ -66,6 +65,8 @@ def gconnect():
 
     # Check that the access token is valid.
     access_token = credentials.access_token
+    print("access token: " + access_token)
+    print("new_access_token: " + credentials.access_token)
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
     h = httplib2.Http()
@@ -94,12 +95,15 @@ def gconnect():
 
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
+    ## print("stored_access_token: " + stored_access_token)
+    ## print("g_plus_id: " + stored_gplus_id)
     if stored_access_token is not None and gplus_id == stored_gplus_id:
+        print('here')
         response = make_response(json.dumps('Current user is already connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
         return response
-
+    print('here now')
     # Store the access token in the session for later use.
     login_session['access_token'] = credentials.access_token
     login_session['gplus_id'] = gplus_id
@@ -110,7 +114,7 @@ def gconnect():
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
-
+    ## print("user_data: " + data)
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
@@ -156,42 +160,39 @@ def getUserID(email):
 
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
-@app.route('/logout', methods=['POST', 'GET'])
+@app.route('/gdisconnect')
 def gdisconnect():
-    # Only disconnect a connected user.
-    if request.method == 'GET':
-        print('something happened')
-        return render_template('/logout.html')
-    if request.method == 'POST':
         # Only disconnect a connected user.
-        access_token = login_session.get('access_token')
-        if access_token is None:
-            response = make_response(
-                json.dumps('Current user not connected.'), 401)
-            response.headers['Content-Type'] = 'application/json'
-            return response
-        url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
-        h = httplib2.Http()
-        result = h.request(url, 'GET')[0]
+    access_token = login_session.get('access_token')
+    print(access_token)
+    if access_token is None:
+        response = make_response(
+            json.dumps('Current user not connected.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    h = httplib2.Http()
+    result = h.request(
+        uri=url, headers={'content-type': 'application/x-www-form-urlencoded'},
+        method='POST')[0]
 
-        if result['status'] == '200':
-            # Reset the user's sesson.
-            del login_session['access_token']
-            del login_session['gplus_id']
-            del login_session['username']
-            del login_session['email']
-            del login_session['picture']
+    if result['status'] == '200':
+        # Reset the user's sesson.
+        del login_session['access_token']
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
 
-            response = make_response(json.dumps(
-                'Successfully disconnected.'), 200)
-            response.headers['Content-Type'] = 'application/json'
-            return response
-        else:
-            # For whatever reason, the given token was invalid.
-            response = make_response(
-                json.dumps('Failed to revoke token for given user.', 400))
-            response.headers['Content-Type'] = 'application/json'
-            return response
+        response = make_response(json.dumps('Successfully disconnected.'), 200)
+        response.headers['Content-Type'] = 'application/json'
+        return redirect('/')
+    else:
+        # For whatever reason, the given token was invalid.
+        response = make_response(
+            json.dumps('Failed to revoke token for given user.', 400))
+        response.headers['Content-Type'] = 'application/json'
+        return response
 
 
 @app.route('/restaurant/<int:restaurant_id>/menu/JSON')
@@ -228,8 +229,9 @@ def newRestaurant():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
+        print(login_session.keys())
         newRestaurant = Restaurant(
-            name=request.form['name'], user_id=login_session['user_id'])
+            name=request.form['name'], user_id=login_session['email'])
         session.add(newRestaurant)
         flash('New Restaurant %s Successfully Created' % newRestaurant.name)
         session.commit()
