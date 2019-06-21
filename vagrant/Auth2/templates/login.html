@@ -4,23 +4,19 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
-<script>
-  function start() {
-    gapi.load('auth2', function() {
-      auth2 = gapi.auth2.init({
-        client_id: '982032467448-lhp2c1m8ne4c0t0un49salaicr8l3j1j.apps.googleusercontent.com'
+  <script>
+    function start() {
+      gapi.load('auth2', function() {
+        auth2 = gapi.auth2.init({client_id: '982032467448-lhp2c1m8ne4c0t0un49salaicr8l3j1j.apps.googleusercontent.com'});
       });
-    });
-  }
-</script>
+    }
+  </script>
 </head>
-
 
 <body>  
 
 <button id="signinButton">Google Signin</button>
 <div id="result"></div>
-
 
 <script>
   $('#signinButton').click(function() {
@@ -30,9 +26,7 @@
         $.ajax({
           type: 'POST',
           url: '/gconnect?state={{STATE}}',
-          headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-          },
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
           contentType: 'application/octet-stream; charset=utf-8',
           success:function(result){
             $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')

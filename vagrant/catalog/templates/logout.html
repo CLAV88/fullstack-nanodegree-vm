@@ -1,0 +1,37 @@
+<head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
+  <script>
+    function start() {
+      gapi.load('auth2', function() {
+        auth2 = gapi.auth2.init({client_id: '982032467448-lhp2c1m8ne4c0t0un49salaicr8l3j1j.apps.googleusercontent.com'});
+      });
+    }
+  </script>
+
+</head>
+<body>
+  <button id="signoutButton">Google Logout</button>
+  <div id="result"></div>
+    <script>
+    $('#signoutButton').click(function() {
+      function clearUserData() {
+          $.ajax({
+          type: 'POST',
+          url: '/logout',
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
+          contentType: 'application/octet-stream; charset=utf-8',
+          success:function(result){
+            $('#result').html('Logout Successful! Redirecting...')
+                setTimeout(function() {
+                  window.location.href = "/";
+                }, 2000);
+          }
+        })
+      }
+      auth2.disconnect().then(clearUserData())
+    })
+    
+  </script>
+</body>

@@ -132,6 +132,7 @@ def gconnect():
 
 # User Helper Functions
 
+
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
@@ -155,7 +156,7 @@ def getUserID(email):
 
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
-@app.route('/gdisconnect')
+@app.route('/gdisconnect', methods=['POST'])
 def gdisconnect():
         # Only disconnect a connected user.
     access_token = login_session.get('access_token')
