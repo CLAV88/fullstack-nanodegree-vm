@@ -15,13 +15,13 @@ DBSession = sessionmaker(bind=engine)
 # session won't be persisted into the database until you call
 # session.commit(). If you're not happy about the changes, you can
 # revert all of them back to the last commit by calling
-# session.rollback()
+# session.rollback
 session = DBSession()
-
+# session.rollback()
 
 # Create dummy user
-User1 = User(name="Robo Barista", email="tinnyTim@udacity.com",
-             picture='https://pbs.twimg.com/profile_images/2671170543/18debd694829ed78203a5a36dd364160_400x400.png')
+User1 = User(name="spongebob", email="spongebob@udacity.com",
+             picture='https://vignette.wikia.nocookie.net/p__/images/c/cb/SpongeBob_SquarePants_Render.png/revision/latest?cb=20190120193322&path-prefix=protagonist')
 session.add(User1)
 session.commit()
 
